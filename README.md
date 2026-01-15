@@ -16,7 +16,7 @@ This is where FlowPose shines. If you pull an FK bone beyond its length, the add
 
 * **Perfect for Tails & Tentacles:** You don't need a complex rig. Just grab the tip of a tail and drag it; the rest of the tail follows naturally in a smooth curve.
 * **Spine Adjustment:** Quickly adjust posture by pulling the chest bone, and the lower spine will accommodate the movement.
-
+* **Drawing poses** Move the mouse instead of individual bones to the motion you were imaginating, disable the pull if you want 👍
 
 
 ### 2. Real-Time Surface Collision 🧱
