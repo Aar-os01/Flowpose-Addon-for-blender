@@ -16,6 +16,8 @@ Collisions
 
 FlowPose is a workflow-enhancing add-on for Blender that bridges the gap between Forward Kinematics (FK) and Inverse Kinematics (IK). It allows you to drag any bone with "Smart Pull" physics, slide limbs against surfaces without clipping, and pose complex chains—**like tails, spines, and tentacles**—effortlessly.
 
+(the rig is **Adjustable Mannequin by Vertex Arcade**)
+
 ## ✨ Key Features
 
 ### 1. Smart Pull (The "Tail" Solver) 🦎
@@ -24,8 +26,16 @@ This is where FlowPose shines. If you pull an FK bone beyond its length, the add
 
 * **Perfect for Tails & Tentacles:** You don't need a complex rig. Just grab the tip of a tail and drag it; the rest of the tail follows naturally in a smooth curve.
 * **Spine Adjustment:** Quickly adjust posture by pulling the chest bone, and the lower spine will accommodate the movement.
-* **Drawing poses** Move the mouse instead of individual bones to the motion you were imaginating, disable the pull if you want 👍
+* **Natural Drawing Poses:** Move your mouse to trace the motion you imagine—FlowPose handles the bone rotation. Disable "Pull" for precise single-bone control. 👍
+* **Custom Chain Limits:** Use the "Stop Bone" picker to set a hard limit (like the hand), preventing the tool from sliding into fingers or unintended bones.
 
+---
+
+### 💡 Visual Tip for your README
+
+When you record your GIFs, I recommend showing the **"Stop Bone"** feature specifically, as it's a unique workflow logic that people will find very helpful.
+
+Would you like me to help you write a "Quick Start" section for the README to explain how to set that Stop Bone effectively?
 
 ### 2. Real-Time Surface Collision 🧱
 
@@ -72,6 +82,9 @@ Once the add-on is installed, select a bone in **Pose Mode**:
 
 * **For Tails:** Enable "Auto Pull" in the sidebar. Select the very tip of the tail and just drag it around. The add-on will rotate the parent bones to follow your mouse, creating a smooth, organic curve instantly.
 * **For Walking:** Set the Collision Source to your "Floor" object. When you place a foot IK controller, it will stop exactly at the floor surface.
+
+
+
 
 ## 📝 License
 
