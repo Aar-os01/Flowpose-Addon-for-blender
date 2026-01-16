@@ -2,16 +2,20 @@
 
 **Fluid IK/FK Posing with Real-Time Collisions for Blender 4.X and 5.X**
 
-Pose Pulling
 
+Bone Pulling
 
 ![0116](https://github.com/user-attachments/assets/bfe93e0b-449b-4a65-bd4f-b81bea8dcdb6)
 
 
 Collisions
 
-
 ![0116(1)](https://github.com/user-attachments/assets/d54f43fb-43b1-4670-8837-0c78cdb158ab)
+
+Fast Posing
+
+![0116(2)](https://github.com/user-attachments/assets/0c35e8f0-3adf-4cd1-8eab-cd650f78a692)
+
 
 
 FlowPose is a workflow-enhancing add-on for Blender that bridges the gap between Forward Kinematics (FK) and Inverse Kinematics (IK). It allows you to drag any bone with "Smart Pull" physics, slide limbs against surfaces without clipping, and pose complex chains—**like tails, spines, and tentacles**—effortlessly.
