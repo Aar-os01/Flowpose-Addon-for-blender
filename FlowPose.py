@@ -1,7 +1,7 @@
 bl_info = {
     "name": "FlowPose",
     "author": "MR",
-    "version": (1, 4),
+    "version": (1, 5),
     "blender": (3, 0, 0),
     "location": "View3D > 'D' Key",
     "description": "FK/IK System with Multi-Bone Limits and Collision",
@@ -217,6 +217,12 @@ class OT_FlowPose(bpy.types.Operator):
     def find_ik_controller(self, context):
         self.ik_constraint = None
         self.ik_target_bone = None
+        
+        # --- FIX: Add check for NoneType bone here ---
+        if not self.current_bone:
+            return
+        # ---------------------------------------------
+
         if not context.scene.flow_use_ik: return
 
         target_bone = self.current_bone
@@ -263,9 +269,11 @@ class OT_FlowPose(bpy.types.Operator):
             self.finish(context)
             return {'FINISHED'}
 
-        if context.active_pose_bone != self.current_bone:
+        # --- FIX: Only switch if the new selection is valid ---
+        if context.active_pose_bone and context.active_pose_bone != self.current_bone:
             self.current_bone = context.active_pose_bone
             self.find_ik_controller(context)
+        # -----------------------------------------------------
 
         return {'PASS_THROUGH'}
 
@@ -374,17 +382,25 @@ class OT_FlowPose(bpy.types.Operator):
         dist_vec = self.mouse_pos - head_2d
         
         # --- MULTI-LIMIT LOGIC ---
-        # Check if the current bone name is in the stop list
         is_at_stop_bone = bone.name in self.stop_bone_names
 
         can_descend = True
         if is_at_stop_bone: can_descend = False
         if context.scene.flow_lock_selection: can_descend = False
 
+        # --- FIX: Find valid visible child to avoid getting stuck on hidden Rigify bones ---
+        valid_child = None
+        if bone.children:
+            for child in bone.children:
+                if not child.bone.hide:
+                    valid_child = child
+                    break
+        # ---------------------------------------------------------------------------------
+
         if dist_vec.length > bone_len_2d * 1.05:
-            if bone.children and dist_vec.length > bone_len_2d * 0.95 and not context.scene.flow_force_pull_mode and can_descend:
+            if valid_child and dist_vec.length > bone_len_2d * 0.95 and not context.scene.flow_force_pull_mode and can_descend:
                 # Slide down to child
-                self.current_bone = bone.children[0]
+                self.current_bone = valid_child
                 context.active_object.data.bones.active = self.current_bone.bone
                 self.find_ik_controller(context)
             else:
