@@ -2,6 +2,7 @@
 
 **Fluid IK/FK Posing with Real-Time Collisions for Blender 4.X and 5.X**
 
+**HIGHLY RECCOMENDED FOR FK**
 
 Bone Pulling
 
