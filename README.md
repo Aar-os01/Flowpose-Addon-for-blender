@@ -19,6 +19,8 @@ Fast Posing
 
 
 
+
+
 FlowPose is a workflow-enhancing add-on for Blender that bridges the gap between Forward Kinematics (FK) and Inverse Kinematics (IK). It allows you to drag any bone with "Smart Pull" physics, slide limbs against surfaces without clipping, and pose complex chains—**like tails, spines, and tentacles**—effortlessly.
 
 (the rig is **Adjustable Mannequin by Vertex Arcade**)
@@ -81,6 +83,8 @@ Once the add-on is installed, select a bone in **Pose Mode**:
 3. Click **Install...** and select the file.
 4. Enable the checkbox for **Animation: FlowPose**.
 5. Find the settings in the **N-Panel > FlowPose** tab.
+
+<img width="414" height="658" alt="image" src="https://github.com/user-attachments/assets/1cd22866-b949-42c9-bc24-638d4a53aee8" />
 
 ---
 
