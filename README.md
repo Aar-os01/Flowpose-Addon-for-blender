@@ -23,8 +23,6 @@ Instead of manually rotating each bone:
 
 (modify **sensitivity and smoothness** as needed)
 
-![with](https://github.com/user-attachments/assets/066fc379-c616-4002-852f-eab78db2dc1b)
-
 ![ezgif-80140c0975cd15c6 (1)](https://github.com/user-attachments/assets/21892e0f-3d43-4ef5-9f19-3d4db8799bc3)
 
 the **pull at the end** acts as an **natural adjustement** of the curve you did
@@ -42,6 +40,8 @@ witouth stop bone
 ![witouth](https://github.com/user-attachments/assets/352a0664-b0be-4910-9e3f-36618b60937c)
 
 with stop bone (at the chest)
+
+![with](https://github.com/user-attachments/assets/066fc379-c616-4002-852f-eab78db2dc1b)
 
 for **collisions** select **an object or a collection** as a parameter first, (all visible is not reccomended)
 
