@@ -31,8 +31,11 @@ FlowPose is a workflow-enhancing add-on for Blender that proposes a new way of p
 ### 0. The Drawing poses process
 
 Instead of manually rotating each bone: 
+
 **Grab the start of an arm/leg/spine/tail, press D** and **Draw the curve**
+
 (modify **sensitivity and smoothness** as needed)
+
 (you can also **setup multiple stop bones for hands and feets** so that you don't accidently pull fingers for example)
 
 witouth stop bone
@@ -42,11 +45,17 @@ witouth stop bone
 with stop bone (at the chest)
 
 ![with](https://github.com/user-attachments/assets/066fc379-c616-4002-852f-eab78db2dc1b)
+
 the **pull at the end** acts as an **natural adjustement** of the curve you did
+
 (modify it's **stiffness** and **chain depth** as needed to make the **pull smoother** and **pull more bones**)
+
 (enable **force pull if you only want the pull of the current bone**)
+
 for **collisions** select **an object or a collection** as a parameter first, (all visible is not reccomended)
+
 change the **magnet axis** if you want your bone to rotate a certain way if colliding with something
+
 
 There is an **IK compatible mode** but it's very **experimental**
 
