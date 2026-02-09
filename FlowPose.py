@@ -1,7 +1,7 @@
 bl_info = {
     "name": "FlowPose",
     "author": "MR",
-    "version": (1, 5),
+    "version": (1, 6),
     "blender": (3, 0, 0),
     "location": "View3D > 'D' Key",
     "description": "FK/IK System with Multi-Bone Limits and Collision",
@@ -87,7 +87,7 @@ class OT_FlowPose(bpy.types.Operator):
     ik_constraint = None
     ik_target_bone = None
     bvh_trees = {}
-    
+
     # Cache stop bones names for performance
     stop_bone_names = []
 
@@ -97,14 +97,14 @@ class OT_FlowPose(bpy.types.Operator):
             return {'CANCELLED'}
 
         self.build_collision_cache(context)
-        
+
         # Cache the stop list
         self.stop_bone_names = [item.name for item in context.scene.flow_stop_bones]
 
         bpy.ops.view3d.select(location=(event.mouse_region_x, event.mouse_region_y))
         self.current_bone = context.active_pose_bone
         if not self.current_bone:
-             return {'CANCELLED'}
+            return {'CANCELLED'}
 
         self.find_ik_controller(context)
         self.mouse_pos = Vector((event.mouse_region_x, event.mouse_region_y))
@@ -122,12 +122,12 @@ class OT_FlowPose(bpy.types.Operator):
 
         if settings.collision_source == 'ALL':
             candidates = [o for o in context.scene.objects
-                          if o.type == 'MESH' and o.visible_get() and o != active_obj]
+                        if o.type == 'MESH' and o.visible_get() and o != active_obj]
 
         elif settings.collision_source == 'COLLECTION':
             if settings.col_collection:
                 candidates = [o for o in settings.col_collection.objects
-                              if o.type == 'MESH' and o.visible_get() and o != active_obj]
+                            if o.type == 'MESH' and o.visible_get() and o != active_obj]
 
         elif settings.collision_source == 'OBJECT':
             if settings.col_object and settings.col_object.type == 'MESH':
@@ -217,7 +217,7 @@ class OT_FlowPose(bpy.types.Operator):
     def find_ik_controller(self, context):
         self.ik_constraint = None
         self.ik_target_bone = None
-        
+
         # --- FIX: Add check for NoneType bone here ---
         if not self.current_bone:
             return
@@ -229,10 +229,10 @@ class OT_FlowPose(bpy.types.Operator):
         armature = context.active_object
 
         for const in target_bone.constraints:
-             if const.type == 'IK' and const.target == armature and const.subtarget:
-                 self.ik_constraint = const
-                 self.ik_target_bone = armature.pose.bones.get(const.subtarget)
-                 return
+            if const.type == 'IK' and const.target == armature and const.subtarget:
+                self.ik_constraint = const
+                self.ik_target_bone = armature.pose.bones.get(const.subtarget)
+                return
 
         for p_bone in armature.pose.bones:
             for const in p_bone.constraints:
@@ -250,7 +250,8 @@ class OT_FlowPose(bpy.types.Operator):
                         count += 1
 
     def modal(self, context, event):
-        context.area.tag_redraw()
+        if context.area:  # <-- Add this check
+            context.area.tag_redraw()
         if event.type == 'MOUSEMOVE':
             self.mouse_pos = Vector((event.mouse_region_x, event.mouse_region_y))
             if not event.alt and not event.shift and not event.ctrl:
@@ -342,8 +343,19 @@ class OT_FlowPose(bpy.types.Operator):
         mouse_vec = self.mouse_pos - head_2d
         current_bone_vec = tail_2d - head_2d
         bone_len_2d = current_bone_vec.length
+        
+        # --- NEW SMOOTHING LOGIC ---
         angle = current_bone_vec.angle_signed(mouse_vec)
+        
+        # 1. Apply Sensitivity (Scale the input range)
         angle *= context.scene.flow_sensitivity
+        
+        # 2. Apply Smoothing (Damping)
+        # 0.0 = Instant, 0.95 = Very Slow
+        smooth_factor = 1.0 - context.scene.flow_smoothness
+        if smooth_factor < 0.01: smooth_factor = 0.01 # Prevent divide by zero/freeze
+        angle *= smooth_factor 
+        # ---------------------------
 
         view_z = rv3d.view_matrix.inverted().to_3x3().col[2]
         view_z_local = obj.matrix_world.inverted().to_3x3() @ view_z
@@ -380,7 +392,7 @@ class OT_FlowPose(bpy.types.Operator):
         context.view_layer.update()
 
         dist_vec = self.mouse_pos - head_2d
-        
+
         # --- MULTI-LIMIT LOGIC ---
         is_at_stop_bone = bone.name in self.stop_bone_names
 
@@ -419,12 +431,12 @@ class OT_FlowPose(bpy.types.Operator):
         mouse_3d = view3d_utils.region_2d_to_location_3d(
             region, rv3d,
             self.mouse_pos,
-            current_ik_world 
+            current_ik_world
         )
 
         desired_ik_world = mouse_3d
         final_ik_world = desired_ik_world
-        
+
         if context.scene.collision_settings.enabled:
             final_ik_world, _, _ = self.solve_collision(current_ik_world, desired_ik_world, context)
 
@@ -451,7 +463,6 @@ class OT_FlowPose(bpy.types.Operator):
                     self.process_smart_pull(context, self.current_bone, mouse_vec, 0)
 
 # --- PICKER & LIST OPERATORS ---
-
 class OT_FlowPickStopBone(bpy.types.Operator):
     bl_idname = "pose.flow_pick_stop_bone"
     bl_label = "Pick Stop Bone"
@@ -459,11 +470,11 @@ class OT_FlowPickStopBone(bpy.types.Operator):
 
     def modal(self, context, event):
         context.area.tag_redraw()
-        
+
         if event.type in {'RIGHTMOUSE', 'ESC'}:
             context.window.cursor_modal_restore()
             return {'CANCELLED'}
-        
+
         if event.type == 'LEFTMOUSE' and event.value == 'PRESS':
             # Perform selection to find bone under mouse
             try:
@@ -482,17 +493,17 @@ class OT_FlowPickStopBone(bpy.types.Operator):
                     self.report({'WARNING'}, "No bone selected")
             except Exception as e:
                 self.report({'ERROR'}, str(e))
-            
+
             context.window.cursor_modal_restore()
             return {'FINISHED'}
-            
+
         return {'RUNNING_MODAL'}
 
     def invoke(self, context, event):
         if context.mode != 'POSE':
             self.report({'WARNING'}, "Please enter Pose Mode first")
             return {'CANCELLED'}
-        
+
         context.window.cursor_modal_set('EYEDROPPER')
         context.window_manager.modal_handler_add(self)
         return {'RUNNING_MODAL'}
@@ -501,7 +512,7 @@ class OT_FlowRemoveStopBone(bpy.types.Operator):
     bl_idname = "pose.flow_remove_stop_bone"
     bl_label = "Remove Stop Bone"
     bl_description = "Remove this bone from the limit list"
-    
+
     index: IntProperty()
 
     def execute(self, context):
@@ -517,9 +528,68 @@ class OT_FlowClearAllStopBones(bpy.types.Operator):
         context.scene.flow_stop_bones.clear()
         return {'FINISHED'}
 
+class OT_FlowPoseClick(OT_FlowPose):
+    bl_idname = "pose.flow_pose_click"
+    bl_label = "FlowPose Click"
+
+    def invoke(self, context, event):
+        # 1. Si le mode n'est pas activé dans le panneau, on laisse Blender tranquille
+        if not context.scene.flow_click_drag_mode:
+            return {'PASS_THROUGH'}
+
+        # 2. On tente de sélectionner ce qu'il y a sous la souris
+        try:
+            # On utilise l'opérateur de sélection natif pour savoir si on touche un os
+            # Si on clique dans le vide, cela désélectionnera l'os (active_pose_bone deviendra None ou changera)
+            prev_bone = context.active_pose_bone
+
+            # On laisse passer l'événement 'PRESS' au selecteur de vue
+            bpy.ops.view3d.select(location=(event.mouse_region_x, event.mouse_region_y))
+
+            new_bone = context.active_pose_bone
+
+            # 3. VERIFICATION : A-t-on touché un os ?
+            # Si pas d'os actif, ou si l'os n'est pas sélectionné (clic vide), on rend la main
+            if not new_bone or not new_bone.bone.select:
+                return {'PASS_THROUGH'}
+
+        except Exception:
+            # En cas d'erreur (ex: contexte invalide), on laisse Blender gérer (Gizmo, Box Select, etc.)
+            return {'PASS_THROUGH'}
+
+        # 4. C'est bon, on a cliqué sur un os ! On initialise FlowPose.
+        self.build_collision_cache(context)
+        self.stop_bone_names = [item.name for item in context.scene.flow_stop_bones]
+        self.current_bone = new_bone
+        self.find_ik_controller(context)
+        self.mouse_pos = Vector((event.mouse_region_x, event.mouse_region_y))
+
+        context.window_manager.modal_handler_add(self)
+        return {'RUNNING_MODAL'}
+
+    def modal(self, context, event):
+        context.area.tag_redraw()
+
+        # 5. Arrêt au relâchement de la souris (RELEASE)
+        if event.type == 'LEFTMOUSE' and event.value == 'RELEASE':
+            self.finish(context)
+            return {'FINISHED'}
+
+        # Mise à jour de la souris
+        if event.type == 'MOUSEMOVE':
+            self.mouse_pos = Vector((event.mouse_region_x, event.mouse_region_y))
+            # On réutilise vos fonctions logiques existantes
+            if self.ik_target_bone and context.scene.flow_use_ik:
+                self.process_ik_fk_logic(context)
+            else:
+                self.process_standard_fk(context)
+
+        # On bloque les autres touches pour éviter les conflits pendant le drag
+        return {'RUNNING_MODAL'}
+
 # --- UI ---
 class PT_FlowPosePanel(bpy.types.Panel):
-    bl_label = "FlowPose V1.4"
+    bl_label = "FlowPose V1.6"
     bl_idname = "PT_FlowPose"
     bl_space_type = 'VIEW_3D'
     bl_region_type = 'UI'
@@ -530,10 +600,18 @@ class PT_FlowPosePanel(bpy.types.Panel):
         scene = context.scene
         col_settings = scene.collision_settings
 
+        # Dans PT_FlowPosePanel.draw :
+        box = layout.box()
+        row = box.row()
+        row.scale_y = 1.2
+        # Le bouton qui active/désactive le mode
+        row.prop(scene, "flow_click_drag_mode", text="Click & Drag Mode", icon='HAND')
+
         box = layout.box()
         box.label(text="Animation Mode:", icon='ARMATURE_DATA')
-        box.prop(scene, "flow_use_ik", text="IK-FK Hybrid")
+        box.prop(scene, "flow_use_ik", text="IK-FK Experimental Hybrid")
         box.prop(scene, "flow_sensitivity", slider=True, text="Sensitivity")
+        box.prop(scene, "flow_smoothness", slider=True, text="Smoothing")
 
         box = layout.box()
         box.label(text="Smart Pull (Body):", icon='FORCE_MAGNETIC')
@@ -543,15 +621,15 @@ class PT_FlowPosePanel(bpy.types.Panel):
         col.prop(scene, "flow_force_pull_mode", text="Force Pull")
         col.prop(scene, "flow_pull_stiffness", slider=True, text="Stiffness")
         col.prop(scene, "flow_pull_chain_depth", text="Chain Depth")
-        
+
         # --- STOP LIST UI ---
         col.separator()
         col.label(text="Stop Limits (Bones):", icon='CANCEL')
-        
+
         row = col.row(align=True)
         row.operator("pose.flow_pick_stop_bone", text="Pick Bone (Click)", icon='EYEDROPPER')
         row.operator("pose.flow_clear_all_stop_bones", text="", icon='TRASH')
-        
+
         if len(scene.flow_stop_bones) > 0:
             list_box = col.box()
             for i, item in enumerate(scene.flow_stop_bones):
@@ -600,19 +678,28 @@ def register():
     bpy.utils.register_class(FlowStopBoneItem)
     bpy.utils.register_class(CollisionSettings)
     bpy.types.Scene.collision_settings = PointerProperty(type=CollisionSettings)
-    bpy.types.Scene.flow_sensitivity = FloatProperty(name="Sensitivity", default=1.0)
+    
+    # Props
+    bpy.types.Scene.flow_sensitivity = FloatProperty(name="Sensitivity", default=1.0,min=0.0, max=1.0)
+    bpy.types.Scene.flow_smoothness = FloatProperty(name="Smoothing", default=0.0, min=0.0, max=0.95, description="Lag/Damping for smoother movement")
+    
     bpy.types.Scene.flow_use_ik = BoolProperty(name="IK Mode", default=True)
     bpy.types.Scene.flow_pull_stiffness = FloatProperty(name="Pull Stiffness", default=0.5, min=0.0, max=0.99)
     bpy.types.Scene.flow_pull_chain_depth = IntProperty(name="Chain Depth", default=3, min=1, max=10)
     bpy.types.Scene.flow_force_pull_mode = BoolProperty(name="Force Pull", default=False)
     bpy.types.Scene.flow_enable_pull = BoolProperty(name="Auto Pull Enable", default=True)
-    
+    # Ajoutez ceci dans la fonction register(), avec les autres properties
+    bpy.types.Scene.flow_click_drag_mode = BoolProperty(
+    name="Click & Drag Mode",
+    default=False,
+    description="Click on a bone to pose it immediately. Release to confirm."
+)
     bpy.types.Scene.flow_lock_selection = BoolProperty(
-        name="Lock Selection", 
-        default=False, 
+        name="Lock Selection",
+        default=False,
         description="Globally prevent automatic bone switching"
     )
-    
+
     # New Collection Property for list
     bpy.types.Scene.flow_stop_bones = CollectionProperty(type=FlowStopBoneItem)
 
@@ -622,16 +709,22 @@ def register():
     bpy.utils.register_class(OT_FlowClearAllStopBones)
     bpy.utils.register_class(OT_RebuildCollisionCache)
     bpy.utils.register_class(PT_FlowPosePanel)
+    bpy.utils.register_class(OT_FlowPoseClick)
 
     wm = bpy.context.window_manager
     kc = wm.keyconfigs.addon
     if kc:
         km = kc.keymaps.new(name='Pose', space_type='EMPTY')
+
         kmi = km.keymap_items.new(OT_FlowPose.bl_idname, 'D', 'PRESS')
         addon_keymaps.append((km, kmi))
 
+        kmi_click = km.keymap_items.new(OT_FlowPoseClick.bl_idname, 'LEFTMOUSE', 'PRESS')
+        addon_keymaps.append((km, kmi_click))
+
 def unregister():
     del bpy.types.Scene.flow_sensitivity
+    del bpy.types.Scene.flow_smoothness
     del bpy.types.Scene.flow_use_ik
     del bpy.types.Scene.collision_settings
     del bpy.types.Scene.flow_pull_stiffness
@@ -640,7 +733,9 @@ def unregister():
     del bpy.types.Scene.flow_enable_pull
     del bpy.types.Scene.flow_lock_selection
     del bpy.types.Scene.flow_stop_bones
+    del bpy.types.Scene.flow_click_drag_mode
 
+    bpy.utils.unregister_class(OT_FlowPoseClick) # <--- Nettoyage
     bpy.utils.unregister_class(PT_FlowPosePanel)
     bpy.utils.unregister_class(OT_RebuildCollisionCache)
     bpy.utils.unregister_class(OT_FlowPickStopBone)
