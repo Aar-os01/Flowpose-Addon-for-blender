@@ -20,7 +20,8 @@ FlowPose is a workflow-enhancing add-on for Blender that proposes a new way of p
 Instead of manually rotating each bone: 
 
 **Activate Click and drag mode, click the start of an arm/leg/spine/tail** and **Draw the curve**
-**or press D each time**
+
+or press D each time for more control
 
 
 
