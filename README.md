@@ -65,8 +65,8 @@ Once the add-on is installed, select a bone in **Pose Mode**:
 
 | Key | Action |
 | --- | --- |
-| **D** | **Activate FlowPose** (Enter modal state) |
-| **Mouse Move** | Drag the bone naturally |
+| **Click and drag toggle** | **Activate FlowPose** (Enter modal state) |
+| **Mouse Click/Move** | Drag the bone naturally |
 | **LMB** | Confirm Pose |
 | **RMB / Esc** | Cancel |
 
